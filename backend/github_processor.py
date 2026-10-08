@@ -3,10 +3,6 @@ import uuid
 from git import Repo
 
 
-# --------------------------------------------------
-# SOURCE CODE FILE TYPES
-# --------------------------------------------------
-
 SOURCE_EXTENSIONS = {
     ".py",
     ".js",
@@ -22,21 +18,11 @@ SOURCE_EXTENSIONS = {
     ".sql",
 }
 
-
-# --------------------------------------------------
-# DOCUMENTATION / PROJECT INFORMATION
-# --------------------------------------------------
-
 CONTEXT_FILES = {
     "README.md",
     "README.txt",
     "requirements.txt",
 }
-
-
-# --------------------------------------------------
-# DIRECTORIES TO IGNORE
-# --------------------------------------------------
 
 IGNORED_DIRECTORIES = {
     ".git",
@@ -54,14 +40,7 @@ IGNORED_DIRECTORIES = {
 }
 
 
-# --------------------------------------------------
-# CLONE REPOSITORY
-# --------------------------------------------------
-
-def clone_repository(
-    github_url,
-    destination="temp_repos"
-):
+def clone_repository(github_url, destination="temp_repos"):
 
     os.makedirs(destination, exist_ok=True)
 
@@ -70,12 +49,9 @@ def clone_repository(
     if repo_name.endswith(".git"):
         repo_name = repo_name[:-4]
 
-    # Create a unique folder every time
     unique_id = uuid.uuid4().hex[:8]
 
-    unique_repo_name = (
-        f"{repo_name}_{unique_id}"
-    )
+    unique_repo_name = f"{repo_name}_{unique_id}"
 
     repo_path = os.path.join(
         destination,
@@ -116,10 +92,6 @@ def clone_repository(
         )
 
 
-# --------------------------------------------------
-# EXTRACT SOURCE CODE + DOCUMENTATION
-# --------------------------------------------------
-
 def extract_code(repo_path):
 
     code_files = []
@@ -130,11 +102,8 @@ def extract_code(repo_path):
     print("SCANNING REPOSITORY")
     print("=" * 60)
 
-    for root, directories, files in os.walk(
-        repo_path
-    ):
+    for root, directories, files in os.walk(repo_path):
 
-        # Ignore unnecessary directories
         directories[:] = [
             directory
             for directory in directories
@@ -157,10 +126,7 @@ def extract_code(repo_path):
                 file
             )[1].lower()
 
-            # ------------------------------------------
-            # SOURCE CODE
-            # ------------------------------------------
-
+            # Source code files
             if extension in SOURCE_EXTENSIONS:
 
                 try:
@@ -174,10 +140,12 @@ def extract_code(repo_path):
 
                         code = f.read()
 
-                    code_files.append({
-                        "file": relative_path,
-                        "code": code
-                    })
+                    code_files.append(
+                        {
+                            "file": relative_path,
+                            "code": code
+                        }
+                    )
 
                     print(
                         f"Source code: {relative_path}"
@@ -189,10 +157,7 @@ def extract_code(repo_path):
                         f"Could not read {file_path}: {error}"
                     )
 
-            # ------------------------------------------
-            # README / REQUIREMENTS
-            # ------------------------------------------
-
+            # Context files
             elif file.lower() in {
                 "readme.md",
                 "readme.txt",
@@ -210,10 +175,12 @@ def extract_code(repo_path):
 
                         content = f.read()
 
-                    context_files.append({
-                        "file": relative_path,
-                        "code": content
-                    })
+                    context_files.append(
+                        {
+                            "file": relative_path,
+                            "code": content
+                        }
+                    )
 
                     print(
                         f"Project context: {relative_path}"
@@ -239,14 +206,10 @@ def extract_code(repo_path):
     return code_files, context_files
 
 
-# --------------------------------------------------
-# PREPARE EVERYTHING FOR LOCAL LLM
-# --------------------------------------------------
-
 def prepare_code_for_llm(
     code_files,
     context_files=None,
-    max_characters=40000
+    max_characters=15000
 ):
 
     if context_files is None:
@@ -259,10 +222,7 @@ def prepare_code_for_llm(
     print("PREPARING REPOSITORY FOR LOCAL LLM")
     print("=" * 60)
 
-    # ------------------------------------------
-    # ADD PROJECT CONTEXT FIRST
-    # ------------------------------------------
-
+    # Add README and other context files first
     for item in context_files:
 
         file_section = (
@@ -280,8 +240,7 @@ def prepare_code_for_llm(
         ):
 
             print(
-                "Character limit reached while "
-                "adding context files."
+                "Character limit reached while adding context files."
             )
 
             break
@@ -292,10 +251,7 @@ def prepare_code_for_llm(
             f"Added context: {item['file']}"
         )
 
-    # ------------------------------------------
-    # ADD SOURCE CODE
-    # ------------------------------------------
-
+    # Add source code files
     for item in code_files:
 
         file_section = (
@@ -313,8 +269,7 @@ def prepare_code_for_llm(
         ):
 
             print(
-                "Character limit reached while "
-                "adding source files."
+                "Character limit reached while adding source files."
             )
 
             break
@@ -327,8 +282,7 @@ def prepare_code_for_llm(
 
     print()
     print(
-        f"Characters sent to LLM: "
-        f"{len(combined_code)}"
+        f"Characters sent to LLM: {len(combined_code)}"
     )
 
     print("=" * 60)
