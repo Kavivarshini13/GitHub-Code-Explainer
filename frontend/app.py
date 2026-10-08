@@ -157,7 +157,7 @@ if st.button(
             try:
 
                 response = requests.post(
-                    "http://127.0.0.1:8000/explain",
+                    "https://diamonds-touring-waiting-themselves.trycloudflare.com/explain",
                     json={
                         "github_url": github_url
                     },
